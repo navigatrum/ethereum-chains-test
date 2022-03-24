@@ -1,0 +1,47 @@
+name: fetch chains data and add prop testnetOf
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: fetch ethereum-lists/chains
+        uses: actions/checkout@v2
+        with:
+          repository: ethereum-lists/chains
+          path: ethereum-lists-chains
+          
+      - name: fetch mycurrent
+        uses: actions/checkout@v2
+        with:
+          path: current
+
+      - name: clean up rawdata
+        working-directory: ./current
+        run: rm -rf rawdata/*
+
+      - name: copy data into rawdata/ethereum-lists
+        run: |
+          mkdir -p ./current/rawdata/ethereum-lists/chains
+          cp -rf ./ethereum-lists-chains/README.md ./current/rawdata/ethereum-lists
+          cp -rf ./ethereum-lists-chains/LICENSE ./current/rawdata/ethereum-lists
+          cp -rf ./ethereum-lists-chains/_data/chains/* ./current/rawdata/ethereum-lists/chains
+      - name: check for modified files
+        id: git-check
+        working-directory: ./current
+        run: echo ::set-output name=modified::$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)
+      - name: commit to main branch
+        if: steps.git-check.outputs.modified == 'true'
+        working-directory: ./current
+        run:  |
+          git config --global user.name 'bot'
+          git config --global user.email 'bot@navigatrum.org'
+          git add -A
+          git commit -m 'feat(data): fetch list from ethereum-lists/chains'
+          git push
