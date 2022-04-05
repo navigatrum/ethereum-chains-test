@@ -3,5 +3,10 @@
     "name": "Ethereum Mainnet",
     "chainId": 1,
     "date": "2022-04-05"
+  },
+  {
+    "name": "Expanse Network",
+    "chainId": 2,
+    "date": "2022-04-05"
   }
 ]
